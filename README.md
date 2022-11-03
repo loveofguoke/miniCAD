@@ -1,2 +1,2 @@
 # miniCAD
-A project in Java course
+A project for JAD22fall
