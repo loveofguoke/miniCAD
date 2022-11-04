@@ -1,7 +1,16 @@
 package miniCAD;
 
+import java.util.ArrayList;
+
 public class Model {
-    final int WIDTH = 800;
-    final int HEIGHT = 600;
-    
+
+    private ArrayList<Shape> shapes = new ArrayList<>();
+
+    ArrayList<Shape> getShapes() {
+        return shapes;
+    }
+
+    void setShapes(ArrayList<Shape> shapes) {
+        this.shapes = shapes;
+    }
 }

@@ -18,6 +18,7 @@ public class Sidebar extends JPanel {
         };
         for(JButton btn : drawBtns) {
             // Add actions
+            btn.addActionListener(new Control.DrawBtnListener());
             this.add(btn);
         }
 

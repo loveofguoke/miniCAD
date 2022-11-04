@@ -1,6 +1,9 @@
 package miniCAD;
 
 import java.util.ArrayList;
+
+import javax.swing.JTextArea;
+
 import java.awt.*;
 
 
@@ -119,15 +122,19 @@ class Circle extends Shape {
 }
 
 class Text extends Shape {
+    String content;
 
-    Text(Color color, int x1, int y1, int x2, int y2) {
+    Text(String content, Color color, int x1, int y1, int x2, int y2) {
         super(color, x1, y1, x2, y2);
-        
+        this.content = content;
     }
-
 
     @Override
     protected void render(Graphics2D g) {
+        if(content == null) return;
         super.render(g);
+        Font font = new Font("宋体", Font.BOLD, maxY() - minY());
+        g.setFont(font);
+        g.drawString(content, minX(), maxY());
     }
 }
