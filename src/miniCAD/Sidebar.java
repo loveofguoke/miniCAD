@@ -32,12 +32,15 @@ public class Sidebar extends JPanel {
             new JButton("Green"),
             new JButton("Yellow"),
             new JButton("Blue"),
-            new JButton("More"),
         };
         for(JButton btn : colorBtns) {
             // Add actions
+            btn.addActionListener(new Control.ColorBtnListener());
             color.add(btn);
         }
+        JButton moreColor = new JButton("More");
+        moreColor.addActionListener(new Control.MoreColorListener());
+        color.add(moreColor);
         this.add(color);
     }
 }

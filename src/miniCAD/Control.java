@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.awt.event.*;
 import java.awt.Color;
+
+import javax.swing.Action;
 import javax.swing.JOptionPane;
+import javax.swing.JColorChooser;
 import java.awt.Point;
 
 public class Control {
@@ -15,6 +18,12 @@ public class Control {
     static final String CIRCLE = "Circle";
     static final String TEXT = "Text";
 
+    static final String BLACK = "Black";
+    static final String RED = "Red";
+    static final String GREEN = "Green";
+    static final String YELLOW = "Yellow";
+    static final String BLUE = "Blue";
+
     static Model model = null;
     static View view = null;
     static String curDrawMode = SELECT;
@@ -24,6 +33,7 @@ public class Control {
     static Color curColor = Color.BLACK;
     static Point preMousePoint;
     static private HashMap<String, AddShape> addShapeMap = new HashMap<>();
+    static private HashMap<String, Color> preSetColors = new HashMap<>();
 
     public Control(Model m, View v) {
         model = m;
@@ -33,6 +43,12 @@ public class Control {
         addShapeMap.put(RECTANGLE, new AddRectangle(shapes));
         addShapeMap.put(CIRCLE, new AddCircle(shapes));
         addShapeMap.put(TEXT, new AddText(shapes));
+
+        preSetColors.put(BLACK, Color.BLACK);
+        preSetColors.put(RED, Color.RED);
+        preSetColors.put(GREEN, Color.GREEN);
+        preSetColors.put(YELLOW, Color.YELLOW);
+        preSetColors.put(BLUE, Color.BLUE);
     }
 
     static Shape getShapeUnderMouse(Point point) {
@@ -52,6 +68,30 @@ public class Control {
             if(curDrawMode == TEXT) {
                 AddText addText = (AddText)addShapeMap.get(TEXT);
                 addText.setContent(JOptionPane.showInputDialog("Enter text:"));
+            }
+        }
+    }
+
+    static class ColorBtnListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            curColor = preSetColors.get(e.getActionCommand());
+            if(curDrawMode.equals(SELECT) && curSelectedShape != null) {
+                curSelectedShape.setColor(curColor);
+                view.refresh();
+            }
+        }
+    }
+
+    static class MoreColorListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            curColor = JColorChooser.showDialog(null, "Choose Color", Color.black);
+            if(curDrawMode.equals(SELECT) && curSelectedShape != null) {
+                curSelectedShape.setColor(curColor);
+                view.refresh();
             }
         }
     }
