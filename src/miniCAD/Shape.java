@@ -6,8 +6,9 @@ import javax.print.attribute.standard.MediaSize.ISO;
 import javax.swing.JTextArea;
 
 import java.awt.*;
+import java.io.Serializable;
 
-abstract public class Shape {
+abstract public class Shape implements Serializable {
 
     final int WIDTH = 800;
     final int HEIGHT = 600;
@@ -19,7 +20,7 @@ abstract public class Shape {
 
     protected ArrayList<Point> points = new ArrayList<>(); // For more points
     protected Color color;
-    protected float stroke = 2.0f;
+    protected float stroke = 3.0f;
 
     Shape(Color color, int x1, int y1, int x2, int y2) {
         points.add(new Point(x1, y1));

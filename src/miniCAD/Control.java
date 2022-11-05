@@ -3,11 +3,21 @@ package miniCAD;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.awt.event.*;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.awt.Color;
 
 import javax.swing.Action;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JColorChooser;
+import javax.swing.JFileChooser;
+
 import java.awt.Point;
 
 public class Control {
@@ -28,7 +38,7 @@ public class Control {
     static View view = null;
     static String curDrawMode = SELECT;
     static int curSelectMode = Shape.INSIDE;
-    static Shape curShape = null;
+    static Shape curDrawingShape = null;
     static Shape curSelectedShape = null;
     static Color curColor = Color.BLACK;
     static Point preMousePoint;
@@ -65,6 +75,7 @@ public class Control {
         @Override
         public void actionPerformed(ActionEvent e) {
             curDrawMode = e.getActionCommand();
+            System.out.println(curDrawMode);
             if(curDrawMode == TEXT) {
                 AddText addText = (AddText)addShapeMap.get(TEXT);
                 addText.setContent(JOptionPane.showInputDialog("Enter text:"));
@@ -96,7 +107,7 @@ public class Control {
         }
     }
 
-    static class ViewListener implements MouseListener, MouseMotionListener {
+    static class ViewListener implements MouseListener, MouseMotionListener, KeyListener {
 
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -119,8 +130,10 @@ public class Control {
         @Override
         public void mousePressed(MouseEvent e) {
             // TODO Auto-generated method stub
+            view.requestFocusInWindow(); // Get Focus
+
             if(!curDrawMode.equals(SELECT)) {
-                curShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
+                curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
             }
             else if(curDrawMode.equals(SELECT)) {
                 preMousePoint = e.getPoint();
@@ -134,14 +147,14 @@ public class Control {
         @Override
         public void mouseReleased(MouseEvent e) {
             // TODO Auto-generated method stub
-            curShape = null;
+            curDrawingShape = null;
         }
 
         @Override
         public void mouseDragged(MouseEvent e) {
             // TODO Auto-generated method stub
             if(!curDrawMode.equals(SELECT)) {
-                curShape.setPoint(1, e.getX(), e.getY());
+                curDrawingShape.setPoint(1, e.getX(), e.getY());
                 view.refresh();
             }
             else if(curDrawMode.equals(SELECT)) {
@@ -163,6 +176,96 @@ public class Control {
         public void mouseMoved(MouseEvent e) {
             // TODO Auto-generated method stub
             
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            // TODO Auto-generated method stub
+            System.out.println(e.getKeyCode());
+            if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                if(curDrawMode.equals(SELECT) && curSelectedShape != null) {
+                    model.getShapes().remove(curSelectedShape);
+                    curSelectedShape = null;
+                    view.refresh();
+                }
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            // TODO Auto-generated method stub
+        }
+    }
+
+    static class OpenFileListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // TODO Auto-generated method stub
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("miniCAD File (*.mcad)", "mcad");
+            chooser.setFileFilter(filter);
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                try {
+                    ObjectInputStream input = new ObjectInputStream(new FileInputStream(file));
+                    ArrayList<Shape> shapes = new ArrayList<>();
+                    while (true) {
+                        try {
+                            Shape s = (Shape)input.readObject();
+                            shapes.add(s);
+                        }
+                        catch (EOFException e1) {
+                            break;
+                        }
+                    }
+                    // reset
+                    model.setShapes(shapes);
+                    for(AddShape elem : addShapeMap.values()) {
+                        elem.setShapes(shapes);
+                    }
+                    curDrawMode = SELECT;
+                    curSelectedShape = null;
+                    curColor = Color.BLACK;
+                    view.refresh();
+                    input.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    JOptionPane.showMessageDialog(chooser, "Failed to open file");
+                } catch (ClassNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            
+        }
+    }
+
+    static class SaveFileListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("miniCAD File (*.mcad)", "mcad");
+            chooser.setFileFilter(filter);
+            if(chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                File file = new File(chooser.getSelectedFile() + ".mcad");
+                try {
+                    ObjectOutputStream output = new ObjectOutputStream((new FileOutputStream(file)));
+                    for (Shape s : model.getShapes()) {
+                        output.writeObject(s);
+                    }
+                    output.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    JOptionPane.showMessageDialog(chooser, "Failed to save file");
+                }
+            }  
         }
     }
 }

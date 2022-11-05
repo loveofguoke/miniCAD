@@ -10,10 +10,10 @@ public class Window extends JFrame {
 
         this.setLayout(new BorderLayout());
         this.add(new Sidebar(), BorderLayout.WEST);
-        this.add(view, BorderLayout.CENTER);
         view.addMouseListener(new Control.ViewListener());
         view.addMouseMotionListener(new Control.ViewListener());
-        // view
+        view.addKeyListener(new Control.ViewListener());
+        this.add(view, BorderLayout.CENTER);
 
     }
 }

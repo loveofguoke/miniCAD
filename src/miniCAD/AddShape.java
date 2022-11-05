@@ -16,6 +16,10 @@ abstract public class AddShape {
     Shape addShape(Color color, MouseEvent e) {
         return null;
     }
+
+    void setShapes(ArrayList<Shape> shapes) {
+        this.shapes = shapes;
+    }
 }
 
 class AddLine extends AddShape {
