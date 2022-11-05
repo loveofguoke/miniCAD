@@ -5,24 +5,43 @@ import java.util.HashMap;
 import java.awt.event.*;
 import java.awt.Color;
 import javax.swing.JOptionPane;
+import java.awt.Point;
 
 public class Control {
 
+    static final String SELECT = "Select";
+    static final String LINE = "Line";
+    static final String RECTANGLE = "Rectangle";
+    static final String CIRCLE = "Circle";
+    static final String TEXT = "Text";
+
     static Model model = null;
     static View view = null;
-    static String curDrawMode = "Select";
+    static String curDrawMode = SELECT;
+    static int curSelectMode = Shape.INSIDE;
     static Shape curShape = null;
+    static Shape curSelectedShape = null;
     static Color curColor = Color.BLACK;
+    static Point preMousePoint;
     static private HashMap<String, AddShape> addShapeMap = new HashMap<>();
 
     public Control(Model m, View v) {
         model = m;
         view = v;
         ArrayList<Shape> shapes = model.getShapes();
-        addShapeMap.put("Line", new AddLine(shapes));
-        addShapeMap.put("Rectangle", new AddRectangle(shapes));
-        addShapeMap.put("Circle", new AddCircle(shapes));
-        addShapeMap.put("Text", new AddText(shapes));
+        addShapeMap.put(LINE, new AddLine(shapes));
+        addShapeMap.put(RECTANGLE, new AddRectangle(shapes));
+        addShapeMap.put(CIRCLE, new AddCircle(shapes));
+        addShapeMap.put(TEXT, new AddText(shapes));
+    }
+
+    static Shape getShapeUnderMouse(Point point) {
+        for (Shape s: model.getShapes()) {
+            if (s.contain(point) != Shape.OUTSIDE) {
+                return s;
+            }
+        }
+        return null;
     }
 
     static class DrawBtnListener implements ActionListener {
@@ -30,8 +49,8 @@ public class Control {
         @Override
         public void actionPerformed(ActionEvent e) {
             curDrawMode = e.getActionCommand();
-            if(curDrawMode == "Text") {
-                AddText addText = (AddText)addShapeMap.get("Text");
+            if(curDrawMode == TEXT) {
+                AddText addText = (AddText)addShapeMap.get(TEXT);
                 addText.setContent(JOptionPane.showInputDialog("Enter text:"));
             }
         }
@@ -60,8 +79,15 @@ public class Control {
         @Override
         public void mousePressed(MouseEvent e) {
             // TODO Auto-generated method stub
-            if(!curDrawMode.equals("Select")) {
+            if(!curDrawMode.equals(SELECT)) {
                 curShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
+            }
+            else if(curDrawMode.equals(SELECT)) {
+                preMousePoint = e.getPoint();
+                curSelectedShape = getShapeUnderMouse(e.getPoint());
+                if(curSelectedShape != null) {
+                    curSelectMode = curSelectedShape.contain(e.getPoint());
+                }
             }
         }
 
@@ -74,11 +100,23 @@ public class Control {
         @Override
         public void mouseDragged(MouseEvent e) {
             // TODO Auto-generated method stub
-            if(!curDrawMode.equals("Select")) {
-                curShape.points.get(1).setLocation(e.getX(), e.getY());
+            if(!curDrawMode.equals(SELECT)) {
+                curShape.setPoint(1, e.getX(), e.getY());
                 view.refresh();
             }
-            System.out.println("refresh");
+            else if(curDrawMode.equals(SELECT)) {
+                if(curSelectedShape != null) {
+                    if(curSelectMode == Shape.INSIDE) {
+                        curSelectedShape.move(e.getX() - preMousePoint.x, e.getY() - preMousePoint.y);
+                        preMousePoint = e.getPoint();
+                    } else if(curSelectMode == Shape.ONPOINT1) {
+                        curSelectedShape.setPoint(0, e.getX(), e.getY());
+                    } else if(curSelectMode == Shape.ONPOINT2) {
+                        curSelectedShape.setPoint(1, e.getX(), e.getY());
+                    }
+                    view.refresh();
+                }
+            }
         }
 
         @Override
