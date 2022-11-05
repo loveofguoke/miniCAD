@@ -15,6 +15,7 @@ import java.awt.Color;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import javax.swing.JColorChooser;
 import javax.swing.JFileChooser;
 
@@ -42,6 +43,8 @@ public class Control {
     static Shape curSelectedShape = null;
     static Color curColor = Color.BLACK;
     static Point preMousePoint;
+    static Point curMousePoint;
+    static Shape curClonedShape = null;
     static private HashMap<String, AddShape> addShapeMap = new HashMap<>();
     static private HashMap<String, Color> preSetColors = new HashMap<>();
 
@@ -56,9 +59,9 @@ public class Control {
 
         preSetColors.put(BLACK, Color.BLACK);
         preSetColors.put(RED, Color.RED);
-        preSetColors.put(GREEN, Color.GREEN);
-        preSetColors.put(YELLOW, Color.YELLOW);
-        preSetColors.put(BLUE, Color.BLUE);
+        preSetColors.put(GREEN, new Color(0, 193, 80));
+        preSetColors.put(YELLOW, new Color(240, 178, 27));
+        preSetColors.put(BLUE, new Color(0, 127, 246));
     }
 
     static Shape getShapeUnderMouse(Point point) {
@@ -76,6 +79,11 @@ public class Control {
         public void actionPerformed(ActionEvent e) {
             curDrawMode = e.getActionCommand();
             System.out.println(curDrawMode);
+            if(curSelectedShape != null) {
+                curSelectedShape.setRenderMode(Shape.NORMAL);
+                curSelectedShape = null;
+                view.refresh();
+            }
             if(curDrawMode == TEXT) {
                 AddText addText = (AddText)addShapeMap.get(TEXT);
                 addText.setContent(JOptionPane.showInputDialog("Enter text:"));
@@ -136,11 +144,22 @@ public class Control {
                 curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
             }
             else if(curDrawMode.equals(SELECT)) {
+                boolean isRefresh = false;
+
+                if(curSelectedShape != null) {
+                    curSelectedShape.renderMode = Shape.NORMAL;
+                    isRefresh = true;
+                }
+
                 preMousePoint = e.getPoint();
                 curSelectedShape = getShapeUnderMouse(e.getPoint());
                 if(curSelectedShape != null) {
                     curSelectMode = curSelectedShape.contain(e.getPoint());
+                    curSelectedShape.setRenderMode(Shape.BOLD);
+                    isRefresh = true;
                 }
+
+                if(isRefresh) view.refresh();
             }
         }
 
@@ -174,8 +193,8 @@ public class Control {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            // TODO Auto-generated method stub
-            
+            curMousePoint = e.getPoint();
+            // TODO 鼠标悬浮在图形边界时突出显示
         }
 
         @Override
@@ -188,12 +207,38 @@ public class Control {
         public void keyPressed(KeyEvent e) {
             // TODO Auto-generated method stub
             System.out.println(e.getKeyCode());
-            if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                if(curDrawMode.equals(SELECT) && curSelectedShape != null) {
+            if(curDrawMode.equals(SELECT) && curSelectedShape != null) {
+                if(e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
                     model.getShapes().remove(curSelectedShape);
                     curSelectedShape = null;
-                    view.refresh();
+                } else if(e.getKeyCode() == KeyEvent.VK_MINUS) {
+                    curSelectedShape.decreaseThickness();
+                } else if(e.getKeyCode() == KeyEvent.VK_EQUALS) {
+                    curSelectedShape.increaseThickness();
+                } else if(e.getKeyCode() == KeyEvent.VK_S) {
+                    // TODO
+                } else if(e.getKeyCode() == KeyEvent.VK_C) {
+                    try {
+                        curClonedShape = (Shape)curSelectedShape.clone();
+                    }
+                    catch (CloneNotSupportedException e1) {
+                        System.out.println("Failed to clone shape");
+                    }
+                } 
+                view.refresh();
+            }
+            if(e.getKeyCode() == KeyEvent.VK_V) {
+                if(curClonedShape != null) {
+                    try {
+                        Shape newShape = (Shape)curClonedShape.clone();
+                        newShape.move(curMousePoint.x - newShape.minX(), curMousePoint.y - newShape.minY());
+                        model.getShapes().add(newShape);
+                    }
+                    catch (CloneNotSupportedException e1) {
+                        System.out.println("Failed to clone shape");
+                    }
                 }
+                view.refresh();
             }
         }
 
@@ -231,6 +276,7 @@ public class Control {
                         elem.setShapes(shapes);
                     }
                     curDrawMode = SELECT;
+                    curDrawingShape = null;
                     curSelectedShape = null;
                     curColor = Color.BLACK;
                     view.refresh();
@@ -250,6 +296,10 @@ public class Control {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if(curSelectedShape != null) {
+                curSelectedShape.setRenderMode(Shape.NORMAL);
+                curSelectedShape = null;
+            }
             JFileChooser chooser = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("miniCAD File (*.mcad)", "mcad");
             chooser.setFileFilter(filter);

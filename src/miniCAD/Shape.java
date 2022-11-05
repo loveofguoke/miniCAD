@@ -2,25 +2,31 @@ package miniCAD;
 
 import java.util.ArrayList;
 
-import javax.print.attribute.standard.MediaSize.ISO;
-import javax.swing.JTextArea;
+import javax.swing.text.FlowView.FlowStrategy;
 
 import java.awt.*;
 import java.io.Serializable;
 
-abstract public class Shape implements Serializable {
+abstract public class Shape implements Serializable, Cloneable {
 
-    final int WIDTH = 800;
-    final int HEIGHT = 600;
-    double zero = 12.0;
+    static final int WIDTH = 800;
+    static final int HEIGHT = 600;
+    static final double zero = 12.0;
     static final int OUTSIDE = -1;
     static final int INSIDE = 0;
     static final int ONPOINT1 = 1;
     static final int ONPOINT2 = 2;
 
-    protected ArrayList<Point> points = new ArrayList<>(); // For more points
+    static final int NORMAL = 0;
+    static final int BOLD = 1;
+
+    static final float MINTHICKNESS = 1.0f;
+    static final float MAXTHICKNESS = 7.0f;
+
+    protected ArrayList<Point> points = new ArrayList<>(); // Remain for more points
     protected Color color;
-    protected float stroke = 3.0f;
+    protected float thickness = 3.0f;
+    protected int renderMode = NORMAL;
 
     Shape(Color color, int x1, int y1, int x2, int y2) {
         points.add(new Point(x1, y1));
@@ -59,6 +65,18 @@ abstract public class Shape implements Serializable {
     protected void setColor(Color color) {
         this.color = color;
     }
+    protected void setThickness(float thickness) {
+        this.thickness = thickness;
+    }
+    protected void increaseThickness() {
+        this.thickness = Math.min(this.thickness + 1.0f, MAXTHICKNESS);
+    }
+    protected void decreaseThickness() {
+        this.thickness = Math.max(this.thickness - 1.0f, MINTHICKNESS);
+    }
+    protected void setRenderMode(int renderMode) {
+        this.renderMode = renderMode;
+    }
     protected int width() {
         return Math.abs(points.get(0).x - points.get(1).x);
     }
@@ -67,8 +85,14 @@ abstract public class Shape implements Serializable {
     }    
 
     protected void render(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // 抗锯齿
         g.setColor(color);
-        g.setStroke(new BasicStroke(stroke));
+
+        if(renderMode == NORMAL) {
+            g.setStroke(new BasicStroke(thickness, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)); // Rounding Ends
+        } else if(renderMode == BOLD) {
+            g.setStroke(new BasicStroke(thickness + 1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)); // Rounding Ends
+        }
     }
 
     protected int contain(Point p) { // contain point p ?
@@ -85,6 +109,12 @@ abstract public class Shape implements Serializable {
         p.setLocation(x, y);
     }
 
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        // TODO Auto-generated method stub
+        return super.clone();
+    }
+
 }
 
 class Line extends Shape {
@@ -93,18 +123,24 @@ class Line extends Shape {
         super(color, x1, y1, x2, y2);
     }
 
-
     @Override
     protected void render(Graphics2D g) {
         super.render(g);
         g.drawLine(points.get(0).x, points.get(0).y, points.get(1).x, points.get(1).y);
 
-
+        if(renderMode == BOLD) {
+            // Draw key points, https://www.codenong.com/cs106019414/
+            Point p1 = points.get(0);
+            Point p2 = points.get(1);
+            g.setColor(Color.BLACK);
+            g.setStroke((new BasicStroke(thickness + 6.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)));
+            g.drawLine(p1.x, p1.y, p1.x, p1.y);
+            g.drawLine(p2.x, p2.y, p2.x, p2.y);
+        }
     }
 
     @Override
     protected int contain(Point p) {
-        // TODO Auto-generated method stub
         Point p1 = points.get(0);
         Point p2 = points.get(1);
 
@@ -131,6 +167,15 @@ class Line extends Shape {
         double C = x1 * y2 - x2 * y1;
         return Math.abs(A * x + B * y + C) / Math.sqrt(Math.pow(A, 2) + Math.pow(B, 2));
     }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        Line line = new Line(this.color, p1.x, p1.y, p2.x, p2.y);
+        line.setThickness(this.thickness);
+        return line;
+    }
 }
 
 class Rectangle extends Shape {
@@ -144,6 +189,16 @@ class Rectangle extends Shape {
     protected void render(Graphics2D g) {
         super.render(g);
         g.drawRect(minX(), minY(), width(), height());
+
+        if(renderMode == BOLD) {
+            // Draw key points, https://www.codenong.com/cs106019414/
+            Point p1 = points.get(0);
+            Point p2 = points.get(1);
+            g.setColor(Color.BLACK);
+            g.setStroke((new BasicStroke(thickness + 6.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)));
+            g.drawLine(p1.x, p1.y, p1.x, p1.y);
+            g.drawLine(p2.x, p2.y, p2.x, p2.y);
+        }
     }
 
     @Override
@@ -156,6 +211,15 @@ class Rectangle extends Shape {
         if (p.x >= Math.min(p1.x, p2.x) && p.x <= Math.max(p1.x, p2.x) &&
             p.y >= Math.min(p1.y, p2.y) && p.y <= Math.max(p1.y, p2.y)) return INSIDE;
         return OUTSIDE;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        Rectangle rec = new Rectangle(this.color, p1.x, p1.y, p2.x, p2.y);
+        rec.setThickness(this.thickness);
+        return rec;
     }
 }
 
@@ -171,19 +235,22 @@ class Circle extends Shape {
         super.render(g);
         g.drawOval(minX(), minY(), width(), height());
 
+        if(renderMode == BOLD) {
+            Point p1 = points.get(0);
+            Point p2 = points.get(1);
+            g.setColor(Color.BLACK);
+            // Draw boundary, https://blog.csdn.net/qq_37663871/article/details/79632737
+            g.setStroke(new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10.f, new float[]{10,6}, 0.f));
+            g.drawRect(minX(), minY(), width(), height());
+            // Draw key points, https://www.codenong.com/cs106019414/
+            g.setStroke((new BasicStroke(thickness + 6.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)));
+            g.drawLine(p1.x, p1.y, p1.x, p1.y);
+            g.drawLine(p2.x, p2.y, p2.x, p2.y);
+        }
     }
 
     @Override
     protected int contain(Point p) {
-
-        // if (status == 2) {
-        //     if ((beginPoint.x - point.x) * (beginPoint.x - point.x) + (beginPoint.y - point.y) * (beginPoint.y - point.y) <= ((int)width + 6) * ((int)width + 6) / 4) {
-        //         return 1;
-        //     }
-        //     if ((endPoint.x - point.x) * (endPoint.x - point.x) + (endPoint.y - point.y) * (endPoint.y - point.y) <= ((int)width + 6) * ((int)width + 6) / 4) {
-        //         return 2;
-        //     }
-        // }
 
         Point p1 = points.get(0);
         Point p2 = points.get(1);
@@ -202,6 +269,14 @@ class Circle extends Shape {
         return OUTSIDE;
     }
 
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        Circle circle = new Circle(this.color, p1.x, p1.y, p2.x, p2.y);
+        circle.setThickness(this.thickness);
+        return circle;
+    }
 }
 
 class Text extends Shape {
@@ -219,6 +294,14 @@ class Text extends Shape {
         Font font = new Font("宋体", Font.BOLD, maxY() - minY());
         g.setFont(font);
         g.drawString(content, minX(), maxY());
+
+        // Reset the boundary
+        FontMetrics fm = g.getFontMetrics();
+        int strWidth = fm.stringWidth(content);
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        if(p1.x <= p2.x) p2.x = p1.x + strWidth;
+        else p1.x = p2.x + strWidth;
     }
 
     @Override
@@ -231,5 +314,14 @@ class Text extends Shape {
         if (p.x >= Math.min(p1.x, p2.x) && p.x <= Math.max(p1.x, p2.x) &&
             p.y >= Math.min(p1.y, p2.y) && p.y <= Math.max(p1.y, p2.y)) return INSIDE;
         return OUTSIDE;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Point p1 = points.get(0);
+        Point p2 = points.get(1);
+        Text text = new Text(this.content, this.color, p1.x, p1.y, p2.x, p2.y);
+        text.setThickness(this.thickness);
+        return text;
     }
 }
