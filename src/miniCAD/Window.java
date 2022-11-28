@@ -6,6 +6,9 @@ import java.awt.*;
 public class Window extends JFrame {
     public Window(View view) {
         this.setTitle("miniCAD by yyb");
+        ImageIcon imageIcon = new ImageIcon("img/icon.jpg");
+        Image image = imageIcon.getImage();
+        this.setIconImage(image);
         this.setJMenuBar(new Menubar());
 
         this.setLayout(new BorderLayout());

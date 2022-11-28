@@ -195,6 +195,7 @@ public class Control {
         public void mouseMoved(MouseEvent e) {
             curMousePoint = e.getPoint();
             // TODO 鼠标悬浮在图形边界时突出显示
+            System.out.println("X: " + e.getX() + ", " + "Y: " + e.getY());
         }
 
         @Override
@@ -217,7 +218,7 @@ public class Control {
                     curSelectedShape.increaseThickness();
                 } else if(e.getKeyCode() == KeyEvent.VK_S) {
                     // TODO
-                } else if(e.getKeyCode() == KeyEvent.VK_C) {
+                } else if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_C) {
                     try {
                         curClonedShape = (Shape)curSelectedShape.clone();
                     }
@@ -227,7 +228,7 @@ public class Control {
                 } 
                 view.refresh();
             }
-            if(e.getKeyCode() == KeyEvent.VK_V) {
+            if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_V) {
                 if(curClonedShape != null) {
                     try {
                         Shape newShape = (Shape)curClonedShape.clone();
@@ -238,6 +239,12 @@ public class Control {
                         System.out.println("Failed to clone shape");
                     }
                 }
+                view.refresh();
+            }
+            if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_L) {
+                model.getShapes().clear();
+                curDrawingShape = null;
+                curSelectedShape = null;
                 view.refresh();
             }
         }
@@ -278,6 +285,7 @@ public class Control {
                     curDrawMode = SELECT;
                     curDrawingShape = null;
                     curSelectedShape = null;
+                    curClonedShape = null;
                     curColor = Color.BLACK;
                     view.refresh();
                     input.close();
@@ -316,6 +324,15 @@ public class Control {
                     JOptionPane.showMessageDialog(chooser, "Failed to save file");
                 }
             }  
+        }
+    }
+
+    static class TutorialListener implements ActionListener {
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final String message = "miniCAD written by yyb in 2022.\n";
+			JOptionPane.showMessageDialog(null, message);
         }
     }
 }
