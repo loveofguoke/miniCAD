@@ -18,5 +18,6 @@ public class Window extends JFrame {
         view.addKeyListener(new Control.ViewListener());
         this.add(view, BorderLayout.CENTER);
 
+        this.addWindowListener(new Control.CloseWindowListener());
     }
 }

@@ -14,7 +14,7 @@ public class Main {
         Window window = new Window(view);
         window.setSize(WIDTH, HEIGHT);
         window.setLocationRelativeTo(null);
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Whether to close depends on the user's choice
         window.setVisible(true);
     }
 }

@@ -119,8 +119,11 @@ public class Control {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            // TODO Auto-generated method stub
             
+            // Right button
+            if(curDrawingShape == null && e.getButton() == MouseEvent.BUTTON3) {
+                curDrawMode = SELECT;
+            }
         }
 
         @Override
@@ -140,38 +143,45 @@ public class Control {
             // TODO Auto-generated method stub
             view.requestFocusInWindow(); // Get Focus
 
-            if(!curDrawMode.equals(SELECT)) {
-                curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
-            }
-            else if(curDrawMode.equals(SELECT)) {
-                boolean isRefresh = false;
-
-                if(curSelectedShape != null) {
-                    curSelectedShape.renderMode = Shape.NORMAL;
-                    isRefresh = true;
+            // Left button
+            if(e.getButton() == MouseEvent.BUTTON1) {
+                if(!curDrawMode.equals(SELECT)) {
+                    curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
                 }
-
-                preMousePoint = e.getPoint();
-                curSelectedShape = getShapeUnderMouse(e.getPoint());
-                if(curSelectedShape != null) {
-                    curSelectMode = curSelectedShape.contain(e.getPoint());
-                    curSelectedShape.setRenderMode(Shape.BOLD);
-                    isRefresh = true;
+                else if(curDrawMode.equals(SELECT)) {
+                    boolean isRefresh = false;
+    
+                    if(curSelectedShape != null) {
+                        curSelectedShape.renderMode = Shape.NORMAL;
+                        isRefresh = true;
+                    }
+    
+                    preMousePoint = e.getPoint();
+                    curSelectedShape = getShapeUnderMouse(e.getPoint());
+                    if(curSelectedShape != null) {
+                        curSelectMode = curSelectedShape.contain(e.getPoint());
+                        curSelectedShape.setRenderMode(Shape.BOLD);
+                        isRefresh = true;
+                    }
+    
+                    if(isRefresh) view.refresh();
                 }
-
-                if(isRefresh) view.refresh();
             }
+
+            
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            // TODO Auto-generated method stub
-            curDrawingShape = null;
+            
+            if(e.getButton() == MouseEvent.BUTTON1) {
+                curDrawingShape = null;
+            }
         }
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            // TODO Auto-generated method stub
+
             if(!curDrawMode.equals(SELECT)) {
                 curDrawingShape.setPoint(1, e.getX(), e.getY());
                 view.refresh();
@@ -225,7 +235,10 @@ public class Control {
                     catch (CloneNotSupportedException e1) {
                         System.out.println("Failed to clone shape");
                     }
-                } 
+                } else if(e.getKeyCode() == KeyEvent.VK_T) { // move to top layer
+                    model.getShapes().remove(curSelectedShape);
+                    model.getShapes().add(0, curSelectedShape);
+                }
                 view.refresh();
             }
             if(e.isControlDown() && e.getKeyCode() == KeyEvent.VK_V) {
@@ -331,8 +344,27 @@ public class Control {
         
         @Override
         public void actionPerformed(ActionEvent e) {
-            final String message = "miniCAD written by yyb in 2022.\n";
+            final String message = "miniCAD written by yyb in 2022\n"
+                                 + "Right btn: Switch to select mode\n"
+                                 + "Backspace: Delete a shape\n"
+                                 + "-/=:       Decrease/Increase thickness\n"
+                                 + "T:         Move a shape to the top layer\n"
+                                 + "Ctrl+C:    Clone a shape\n"
+                                 + "Ctrl+V:    Paste the cloned shape\n"
+                                 + "Ctrl+L:    Clear the canvas";
 			JOptionPane.showMessageDialog(null, message);
+        }
+    }
+
+    static class CloseWindowListener extends WindowAdapter {
+
+        @Override
+        public void windowClosing(WindowEvent e){
+            
+            int option = JOptionPane.showConfirmDialog(null,"File not saved yet, sure to exit?","",JOptionPane.YES_NO_OPTION);
+            if(option == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
         }
     }
 }
