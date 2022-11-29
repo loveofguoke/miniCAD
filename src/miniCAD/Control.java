@@ -35,6 +35,8 @@ public class Control {
     static final String YELLOW = "Yellow";
     static final String BLUE = "Blue";
 
+    static final String DefaultDir = "./";
+
     static Model model = null;
     static View view = null;
     static String curDrawMode = SELECT;
@@ -276,6 +278,7 @@ public class Control {
             JFileChooser chooser = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("miniCAD File (*.mcad)", "mcad");
             chooser.setFileFilter(filter);
+            chooser.setCurrentDirectory(new File(DefaultDir));
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
                 try {
@@ -324,6 +327,7 @@ public class Control {
             JFileChooser chooser = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("miniCAD File (*.mcad)", "mcad");
             chooser.setFileFilter(filter);
+            chooser.setCurrentDirectory(new File(DefaultDir));
             if(chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                 File file = new File(chooser.getSelectedFile() + ".mcad");
                 try {
