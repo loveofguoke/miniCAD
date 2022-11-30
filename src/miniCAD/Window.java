@@ -15,6 +15,7 @@ public class Window extends JFrame {
         this.add(new Sidebar(), BorderLayout.WEST);
         view.addMouseListener(new Control.ViewListener());
         view.addMouseMotionListener(new Control.ViewListener());
+        view.addMouseWheelListener(new Control.ViewListener());
         view.addKeyListener(new Control.ViewListener());
         this.add(view, BorderLayout.CENTER);
 

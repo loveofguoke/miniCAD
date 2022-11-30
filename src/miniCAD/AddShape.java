@@ -13,7 +13,7 @@ abstract public class AddShape {
         this.shapes = shapes;
     }
 
-    Shape addShape(Color color, MouseEvent e) {
+    Shape addShape(Color color, float thickness, MouseEvent e) {
         return null;
     }
 
@@ -29,10 +29,9 @@ class AddLine extends AddShape {
     }
 
     @Override
-    Shape addShape(Color color, MouseEvent e) {
-        // TODO Auto-generated method stub
-        super.addShape(color, e);
-        Line line = new Line(color, e.getX(), e.getY(), e.getX(), e.getY());
+    Shape addShape(Color color, float thickness, MouseEvent e) {
+        super.addShape(color, thickness, e);
+        Line line = new Line(color, thickness, e.getX(), e.getY(), e.getX(), e.getY());
         shapes.add(line);
         return line;
     }
@@ -45,10 +44,9 @@ class AddRectangle extends AddShape {
     }
 
     @Override
-    Shape addShape(Color color, MouseEvent e) {
-        // TODO Auto-generated method stub
-        super.addShape(color, e);
-        Rectangle rec = new Rectangle(color, e.getX(), e.getY(), e.getX(), e.getY());
+    Shape addShape(Color color, float thickness, MouseEvent e) {
+        super.addShape(color, thickness, e);
+        Rectangle rec = new Rectangle(color, thickness, e.getX(), e.getY(), e.getX(), e.getY());
         shapes.add(rec);
         return rec;
     }
@@ -62,10 +60,9 @@ class AddCircle extends AddShape {
     }
 
     @Override
-    Shape addShape(Color color, MouseEvent e) {
-        // TODO Auto-generated method stub
-        super.addShape(color, e);
-        Circle circle = new Circle(color, e.getX(), e.getY(), e.getX(), e.getY());
+    Shape addShape(Color color, float thickness, MouseEvent e) {
+        super.addShape(color, thickness, e);
+        Circle circle = new Circle(color, thickness, e.getX(), e.getY(), e.getX(), e.getY());
         shapes.add(circle);
         return circle;
     }
@@ -85,10 +82,9 @@ class AddText extends AddShape {
     }
 
     @Override
-    Shape addShape(Color color, MouseEvent e) {
-        // TODO Auto-generated method stub
-        super.addShape(color, e);
-        Text text = new Text(content, color, e.getX(), e.getY(), e.getX(), e.getY());
+    Shape addShape(Color color, float thickness, MouseEvent e) {
+        super.addShape(color, thickness, e);
+        Text text = new Text(content, color, thickness, e.getX(), e.getY(), e.getX(), e.getY());
         shapes.add(text);
         return text;
     }

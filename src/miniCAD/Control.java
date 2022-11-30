@@ -44,6 +44,7 @@ public class Control {
     static Shape curDrawingShape = null;
     static Shape curSelectedShape = null;
     static Color curColor = Color.BLACK;
+    static float curThickness = 3.0f;
     static Point preMousePoint;
     static Point curMousePoint;
     static Shape curClonedShape = null;
@@ -117,14 +118,23 @@ public class Control {
         }
     }
 
-    static class ViewListener implements MouseListener, MouseMotionListener, KeyListener {
+    static class ViewListener implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
         @Override
         public void mouseClicked(MouseEvent e) {
             
-            // Right button
+            // Click right button, switch to select mode
             if(curDrawingShape == null && e.getButton() == MouseEvent.BUTTON3) {
                 curDrawMode = SELECT;
+            } 
+            // Double click left button, modify text content
+            else if(curSelectedShape instanceof Text && e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) { 
+                Text text = (Text)curSelectedShape;
+                String newContent = JOptionPane.showInputDialog("Enter new text:", text.content);
+                if(newContent != null) {
+                    text.setContent(newContent);
+                } 
+                view.refresh();
             }
         }
 
@@ -148,7 +158,7 @@ public class Control {
             // Left button
             if(e.getButton() == MouseEvent.BUTTON1) {
                 if(!curDrawMode.equals(SELECT)) {
-                    curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, e);
+                    curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, curThickness, e);
                 }
                 else if(curDrawMode.equals(SELECT)) {
                     boolean isRefresh = false;
@@ -268,6 +278,14 @@ public class Control {
         public void keyReleased(KeyEvent e) {
             // TODO Auto-generated method stub
         }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            float newThickness = curThickness - e.getWheelRotation();
+            curThickness = newThickness < Shape.MINTHICKNESS ? Shape.MINTHICKNESS 
+                         : newThickness > Shape.MAXTHICKNESS ? Shape.MAXTHICKNESS 
+                         : newThickness;
+        }
     }
 
     static class OpenFileListener implements ActionListener {
@@ -350,6 +368,8 @@ public class Control {
         public void actionPerformed(ActionEvent e) {
             final String message = "miniCAD written by yyb in 2022\n"
                                  + "Right btn: Switch to select mode\n"
+                                 + "Double Left btn: Modify text content\n"
+                                 + "Mouse wheel: Modify brush thickness\n"
                                  + "Backspace: Delete a shape\n"
                                  + "-/=:       Decrease/Increase thickness\n"
                                  + "T:         Move a shape to the top layer\n"

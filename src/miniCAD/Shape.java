@@ -28,10 +28,11 @@ abstract public class Shape implements Serializable, Cloneable {
     protected float thickness = 3.0f;
     protected int renderMode = NORMAL;
 
-    Shape(Color color, int x1, int y1, int x2, int y2) {
+    Shape(Color color, float thickness, int x1, int y1, int x2, int y2) {
         points.add(new Point(x1, y1));
         points.add(new Point(x2, y2));
         setColor(color);
+        setThickness(thickness);
     }
 
     protected int minX() {
@@ -119,8 +120,8 @@ abstract public class Shape implements Serializable, Cloneable {
 
 class Line extends Shape {
 
-    Line(Color color, int x1, int y1, int x2, int y2) {
-        super(color, x1, y1, x2, y2);
+    Line(Color color, float thickness, int x1, int y1, int x2, int y2) {
+        super(color, thickness, x1, y1, x2, y2);
     }
 
     @Override
@@ -172,16 +173,15 @@ class Line extends Shape {
     protected Object clone() throws CloneNotSupportedException {
         Point p1 = points.get(0);
         Point p2 = points.get(1);
-        Line line = new Line(this.color, p1.x, p1.y, p2.x, p2.y);
-        line.setThickness(this.thickness);
+        Line line = new Line(this.color, this.thickness, p1.x, p1.y, p2.x, p2.y);
         return line;
     }
 }
 
 class Rectangle extends Shape {
 
-    Rectangle(Color color, int x1, int y1, int x2, int y2) {
-        super(color, x1, y1, x2, y2);
+    Rectangle(Color color, float thickness, int x1, int y1, int x2, int y2) {
+        super(color, thickness, x1, y1, x2, y2);
         
     }
 
@@ -217,16 +217,15 @@ class Rectangle extends Shape {
     protected Object clone() throws CloneNotSupportedException {
         Point p1 = points.get(0);
         Point p2 = points.get(1);
-        Rectangle rec = new Rectangle(this.color, p1.x, p1.y, p2.x, p2.y);
-        rec.setThickness(this.thickness);
+        Rectangle rec = new Rectangle(this.color, this.thickness, p1.x, p1.y, p2.x, p2.y);
         return rec;
     }
 }
 
 class Circle extends Shape {
 
-    Circle(Color color, int x1, int y1, int x2, int y2) {
-        super(color, x1, y1, x2, y2);
+    Circle(Color color, float thickness, int x1, int y1, int x2, int y2) {
+        super(color, thickness, x1, y1, x2, y2);
         
     }
 
@@ -273,8 +272,7 @@ class Circle extends Shape {
     protected Object clone() throws CloneNotSupportedException {
         Point p1 = points.get(0);
         Point p2 = points.get(1);
-        Circle circle = new Circle(this.color, p1.x, p1.y, p2.x, p2.y);
-        circle.setThickness(this.thickness);
+        Circle circle = new Circle(this.color, this.thickness, p1.x, p1.y, p2.x, p2.y);
         return circle;
     }
 }
@@ -282,8 +280,12 @@ class Circle extends Shape {
 class Text extends Shape {
     String content;
 
-    Text(String content, Color color, int x1, int y1, int x2, int y2) {
-        super(color, x1, y1, x2, y2);
+    Text(String content, Color color, float thickness, int x1, int y1, int x2, int y2) {
+        super(color, thickness, x1, y1, x2, y2);
+        this.content = content;
+    }
+
+    void setContent(String content) {
         this.content = content;
     }
 
@@ -293,8 +295,6 @@ class Text extends Shape {
         super.render(g);
         Font font = new Font("宋体", Font.BOLD, maxY() - minY());
         g.setFont(font);
-        g.drawString(content, minX(), maxY());
-
         // Reset the boundary
         FontMetrics fm = g.getFontMetrics();
         int strWidth = fm.stringWidth(content);
@@ -302,6 +302,8 @@ class Text extends Shape {
         Point p2 = points.get(1);
         if(p1.x <= p2.x) p2.x = p1.x + strWidth;
         else p1.x = p2.x + strWidth;
+
+        g.drawString(content, minX(), maxY());
     }
 
     @Override
@@ -320,8 +322,7 @@ class Text extends Shape {
     protected Object clone() throws CloneNotSupportedException {
         Point p1 = points.get(0);
         Point p2 = points.get(1);
-        Text text = new Text(this.content, this.color, p1.x, p1.y, p2.x, p2.y);
-        text.setThickness(this.thickness);
+        Text text = new Text(this.content, this.color, this.thickness, p1.x, p1.y, p2.x, p2.y);
         return text;
     }
 }
