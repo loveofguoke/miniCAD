@@ -48,6 +48,7 @@ public class Control {
     static Point preMousePoint;
     static Point curMousePoint;
     static Shape curClonedShape = null;
+    static boolean textEmpty = true;
     static private HashMap<String, AddShape> addShapeMap = new HashMap<>();
     static private HashMap<String, Color> preSetColors = new HashMap<>();
 
@@ -89,7 +90,11 @@ public class Control {
             }
             if(curDrawMode == TEXT) {
                 AddText addText = (AddText)addShapeMap.get(TEXT);
-                addText.setContent(JOptionPane.showInputDialog("Enter text:"));
+                String newContent = JOptionPane.showInputDialog("Enter text:", addText.content);
+                if(newContent != null) {
+                    addText.setContent(newContent);
+                    textEmpty = false;
+                }
             }
         }
     }
@@ -158,7 +163,9 @@ public class Control {
             // Left button
             if(e.getButton() == MouseEvent.BUTTON1) {
                 if(!curDrawMode.equals(SELECT)) {
-                    curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, curThickness, e);
+                    if(!(curDrawMode.equals(TEXT) && textEmpty)) {
+                        curDrawingShape = addShapeMap.get(curDrawMode).addShape(curColor, curThickness, e);
+                    }
                 }
                 else if(curDrawMode.equals(SELECT)) {
                     boolean isRefresh = false;
@@ -321,6 +328,8 @@ public class Control {
                     curSelectedShape = null;
                     curClonedShape = null;
                     curColor = Color.BLACK;
+                    curThickness = 3.0f;
+                    textEmpty = true;
                     view.refresh();
                     input.close();
                 } catch (IOException e1) {
@@ -368,7 +377,7 @@ public class Control {
         public void actionPerformed(ActionEvent e) {
             final String message = "miniCAD written by yyb in 2022\n"
                                  + "Right btn: Switch to select mode\n"
-                                 + "Double Left btn: Modify text content\n"
+                                 + "Double left btn: Modify text content\n"
                                  + "Mouse wheel: Modify brush thickness\n"
                                  + "Backspace: Delete a shape\n"
                                  + "-/=:       Decrease/Increase thickness\n"
